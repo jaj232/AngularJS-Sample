@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AngularJS Sample</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+</head>
+<body>
+<script>
+	//script and style sheets could be pulled from external files.  Bootstrap, jQuery, and AngularJs files
+	//could be hosted, but for purposes of this demo everything is in this one html file.
+	angular.module('myApp', []).controller('myCtrl', function($scope) {
+		$scope.header = ['FIRSTNAME','LASTNAME','PHONE'];
+		$scope.person = [
+            {FIRSTNAME:'Mary',LASTNAME:'Moe',PHONE:'702-867-5309'},
+            {FIRSTNAME:'Julia',LASTNAME:'Gulia',PHONE:'702-222-3333'}
+        ];//starting data could be blank, or pulled from a database.
+        $scope.addRecord = function(){
+			var firstField = $('#'+$scope.header[0]).val();//requiring at least one field
+            if(typeof firstField == 'undefined' || firstField =='')
+            {
+				alert("The first field is required");
+                return;
+            }
+
+            var tempObj = {};
+            for(i=0; i<$scope.header.length;i++)
+            {
+				tempObj[$scope.header[i]] = $('#'+$scope.header[i]).val();
+            }
+
+            $scope.person.push(tempObj);//adding a person object to the array
+
+            $scope.resetFields();
+        };
+        $scope.addField = function(){
+			var newField = $('#new_field').val().toUpperCase();
+            var newValue = $('#default_value').val();
+            if(typeof newField =='undefined' || newField == '')
+            {
+				alert('Please enter a valid field name');
+            }
+			else if($.inArray(newField, $scope.header) > -1)//check that field doesnt already exist
+			{
+				alert('The field name ' + newField + ' is already in use');
+			}
+			else
+			{
+				$scope.header.push(newField);//add new field to header array
+				for(i=0; i<$scope.person.length;i++)
+				{
+					$scope.person[i][newField]= newValue;//add new field to each person
+				}
+			}
+			
+			$scope.resetFields();
+		};
+		$scope.deleteRow = function(id){
+			$scope.person.splice(id,1);//remove person
+		};
+		$scope.deleteColumn = function(id){
+			if(confirm("Are you sure you want to remove this field?"))
+			{
+				var field = $scope.header[id];
+				for(i=0; i<$scope.person.length;i++)
+				{
+					delete $scope.person[i][field];//remove this field from every person.
+				}
+
+				$scope.header.splice(id,1);
+			}
+		};
+		$scope.resetFields = function(){
+			$('input').val('');
+		};
+	});
+</script>
+<style>
+	.center {
+     float: none;
+     margin-left: auto;
+     margin-right: auto;
+}
+	.pageDiv {
+		background-color: #999999;
+	}
+	fieldDesc {
+		font-size: 150%;
+		font-weight: bold;
+	}
+	.hand {
+		cursor: pointer;
+	}
+</style>
+
+<nav class="navbar navbar-inverse container-fluid">
+    <div class="navbar-header">
+        <a class="navbar-brand" href="#">
+            AngularJS Sample
+        </a>
+    </div>
+</nav> 
+<div>
+	<p>This is a demo showing some features of AngularJS such as allowing you to...</p>
+	<ul>
+		<li>Dynamically change css properties on a page such as Page and Text color.</li>
+		<li>Dynamically add personnel records.</li>
+		<li>Dynamically edit the fields you want in those personnel records.</li>
+	</ul>
+</div>
+<div ng-app="myApp" ng-controller="myCtrl" ng-init="resetFields()"
+     ng-style="{'background-color': pageColor, 'color': textColor}" 
+     class="container-fluid pageDiv">
+	<h1> Page Preferences: </h1>
+    <hr>
+    <table class="table table-bordered">
+		<tr>
+			<td class="fieldDesc">Page Color:</td>
+            <td><input ng-model="pageColor" type="color" class="form-control" /></td>
+		</tr>
+        <tr>
+			<td class="fieldDesc">Text Color:</td>
+            <td><input ng-model="textColor" type="color" class="form-control" /></td>
+        </tr>
+	</table>        
+    
+	<h1> Personnel Info: </h1>
+    <hr>
+    <table class="table table-bordered">
+		<tr ng-repeat="x in header">
+			<td class="fieldDesc">{{x}}:</td>
+            <td><input id="{{x}}" type="text" class="form-control" placeholder="Enter {{x}}" /></td>
+        </tr>
+    </table>
+    <button ng-click="addRecord();" type="button" class="btn btn-success btn-lg col-xs-12">
+        <span class="glyphicon glyphicon-save"></span>
+        Save Record
+    </button>
+    <br><br><br>
+
+    <input id="new_field" type="text" placeholder="New Field" class="input-lg col-xs-4" style="text-transform: uppercase;" />
+	<span class="col-xs-1"></span>
+	<input id="default_value" type="text" placeholder="Default Value" class="input-lg col-xs-4" />
+    <span class="col-xs-1"></span>
+    <button ng-click="addField();" type="button" class="btn btn-danger btn-lg col-xs-2">
+        <span class="glyphicon glyphicon-expand"></span>
+        Add Field
+    </button>
+    <br><br><br>
+	<hr>
+ 
+    <h1> Results: </h1>
+    <hr>
+    <div class="table-responsive">
+		<table class="table table-hover table-bordered">
+			<thead>
+				<tr>
+					<th></th>
+                    <th ng-repeat="x in header">
+						<span class="glyphicon glyphicon-trash hand" ng-click="deleteColumn($index);"></span>
+                        {{x}}
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+				<tr ng-repeat="x in person">
+					<td>
+						<span class="glyphicon glyphicon-trash hand" ng-click="deleteRow($index);"></span>
+                    </td>
+                    <td ng-repeat="(key,value) in x">
+						{{value}}
+                    </td>
+                </tr>
+            </tbody>            
+		</table>
+	</div>
+</div>
+<br>
+
+<nav class="navbar navbar-inverse">
+	<div class="container-fluid">
+    </div>
+</nav>
+
+</body>
+</html>
